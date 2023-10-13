@@ -243,125 +243,125 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED) {
-
-            val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
-            val uidBytes = tag?.id
-
-            if (uidBytes != null) {
-                val tagUID = byteArrayToHexString(uidBytes)
-                Toast.makeText(this, "UID: $tagUID", Toast.LENGTH_SHORT).show()
-
-                // Check if the UID exists
-                val employeeDataExists = dbHelper.employeeExists(tagUID)
-
-                // Get the data of the UID
-                val employeeData = dbHelper.getEmployeeData()
-                val matchingEmployeeData = employeeData.find { it.UID == tagUID }
-
-                // UI text
-                val dispatcherText = findViewById<TextView>(R.id.dispatcher_text)
-                val driverText = findViewById<TextView>(R.id.driver_text)
-                val conductorText = findViewById<TextView>(R.id.conductor_text)
-
-                // Display the names
-                val dispatcherNameDisplay = findViewById<TextView>(R.id.dispatcher_name)
-                val driverNameDisplay = findViewById<TextView>(R.id.driver_name)
-                val conductorNameDisplay = findViewById<TextView>(R.id.conductor_name)
-
-                if (matchingEmployeeData != null) {
-                    Log.d("Card", "Tapped in")
-
-                    val employeeName = matchingEmployeeData.Name
-                    val employeeType = matchingEmployeeData.EmployeeType
-
-
-                    if (employeeType == "driver" ) {
-
-                        Log.d("DriverCard", "Tapped in")
-
-                        //change button color
-                        val driverButton = findViewById<Button>(R.id.driver_btn)
-                        driverButton.setTextColor(Color.WHITE)
-                        driverButton.setBackgroundResource(R.drawable.green_btn)
-                        driverButton.text = ""
-                        isDriverExists = true
-
-                        for (employee in employeeData) {
-                            val uid = employee.UID
-                           // val name = employee.Name
-                            if (uid == tagUID) {
-                                driverText.visibility = View.VISIBLE
-                                driverNameDisplay.visibility = View.VISIBLE
-                                driverNameDisplay.text = employeeName
-                                driverName = employeeName
-                              //  Log.d("EmployeeInfo", "UID: $uid, Name: $name")
-                                break
-                            }
-                        }
-                    } else if (employeeType == "dispatcher") {
-
-                        Log.d("DispatcherCard", "Tapped in")
-
-                        //change button color
-                        val dispatcherButton = findViewById<Button>(R.id.dispatcher_btn)
-                        dispatcherButton.setTextColor(Color.WHITE)
-                        dispatcherButton.setBackgroundResource(R.drawable.green_btn)
-                        dispatcherButton.text = ""
-                        isDispatcherExists = true
-
-                        for (employee in employeeData) {
-                            val uid = employee.UID
-                           // val name = employee.Name
-                            if (uid == tagUID) {
-                                dispatcherText.visibility = View.VISIBLE
-                                dispatcherNameDisplay.visibility = View.VISIBLE
-                                dispatcherNameDisplay.text = employeeName
-                               // Log.d("EmployeeInfo", "UID: $uid, Name: $name")
-                                break
-                            }
-                        }
-                    } else if (employeeType == "conductor") {
-
-                        Log.d("ConductorCard", "Tapped in")
-
-                        val conductorButton = findViewById<Button>(R.id.conductor_btn)
-                        conductorButton.setTextColor(Color.WHITE)
-                        conductorButton.setBackgroundResource(R.drawable.green_btn)
-                        conductorButton.text = ""
-                        isConductorExists = true
-
-                        for (employee in employeeData) {
-                            val uid = employee.UID
-                           // val name = employee.Name
-                            if (uid == tagUID) {
-                                conductorText.visibility = View.VISIBLE
-                                conductorNameDisplay.visibility = View.VISIBLE
-                                conductorNameDisplay.text = employeeName
-                                conductorName = employeeName
-                                //Log.d("EmployeeInfo", "UID: $uid, Name: $name")
-                                break
-                            }
-                        }
-                    }
-                } else {
-                    Toast.makeText(this, "UID does not exist", Toast.LENGTH_SHORT).show()
-                }
-
-                Log.d("Requirements", "$isDispatcherExists")
-                Log.d("Requirements", "$isDriverExists")
-                Log.d("Requirements", "$isConductorExists")
-                Log.d("Requirements", "$isSelectedBound")
-                Log.d("Requirements", "$isSelectedRoute")
-                Log.d("Requirements", "$regularTripButtonClicked")
-                Log.d("Requirements", "$specialTripButtonClicked")
-
-                updateDispatchButtonState()
-
-            } else {
-                Toast.makeText(this, "Card cannot be found", Toast.LENGTH_SHORT).show()
-            }
-        }
+//        if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED) {
+//
+//            val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
+//            val uidBytes = tag?.id
+//
+//            if (uidBytes != null) {
+//                val tagUID = byteArrayToHexString(uidBytes)
+//                Toast.makeText(this, "UID: $tagUID", Toast.LENGTH_SHORT).show()
+//
+//                // Check if the UID exists
+//                val employeeDataExists = dbHelper.employeeExists(tagUID)
+//
+//                // Get the data of the UID
+//                val employeeData = dbHelper.getEmployeeData()
+//                val matchingEmployeeData = employeeData.find { it.UID == tagUID }
+//
+//                // UI text
+//                val dispatcherText = findViewById<TextView>(R.id.dispatcher_text)
+//                val driverText = findViewById<TextView>(R.id.driver_text)
+//                val conductorText = findViewById<TextView>(R.id.conductor_text)
+//
+//                // Display the names
+//                val dispatcherNameDisplay = findViewById<TextView>(R.id.dispatcher_name)
+//                val driverNameDisplay = findViewById<TextView>(R.id.driver_name)
+//                val conductorNameDisplay = findViewById<TextView>(R.id.conductor_name)
+//
+//                if (matchingEmployeeData != null) {
+//                    Log.d("Card", "Tapped in")
+//
+//                    val employeeName = matchingEmployeeData.Name
+//                    val employeeType = matchingEmployeeData.EmployeeType
+//
+//
+//                    if (employeeType == "driver" ) {
+//
+//                        Log.d("DriverCard", "Tapped in")
+//
+//                        //change button color
+//                        val driverButton = findViewById<Button>(R.id.driver_btn)
+//                        driverButton.setTextColor(Color.WHITE)
+//                        driverButton.setBackgroundResource(R.drawable.green_btn)
+//                        driverButton.text = ""
+//                        isDriverExists = true
+//
+//                        for (employee in employeeData) {
+//                            val uid = employee.UID
+//                           // val name = employee.Name
+//                            if (uid == tagUID) {
+//                                driverText.visibility = View.VISIBLE
+//                                driverNameDisplay.visibility = View.VISIBLE
+//                                driverNameDisplay.text = employeeName
+//                                driverName = employeeName
+//                              //  Log.d("EmployeeInfo", "UID: $uid, Name: $name")
+//                                break
+//                            }
+//                        }
+//                    } else if (employeeType == "dispatcher") {
+//
+//                        Log.d("DispatcherCard", "Tapped in")
+//
+//                        //change button color
+//                        val dispatcherButton = findViewById<Button>(R.id.dispatcher_btn)
+//                        dispatcherButton.setTextColor(Color.WHITE)
+//                        dispatcherButton.setBackgroundResource(R.drawable.green_btn)
+//                        dispatcherButton.text = ""
+//                        isDispatcherExists = true
+//
+//                        for (employee in employeeData) {
+//                            val uid = employee.UID
+//                           // val name = employee.Name
+//                            if (uid == tagUID) {
+//                                dispatcherText.visibility = View.VISIBLE
+//                                dispatcherNameDisplay.visibility = View.VISIBLE
+//                                dispatcherNameDisplay.text = employeeName
+//                               // Log.d("EmployeeInfo", "UID: $uid, Name: $name")
+//                                break
+//                            }
+//                        }
+//                    } else if (employeeType == "conductor") {
+//
+//                        Log.d("ConductorCard", "Tapped in")
+//
+//                        val conductorButton = findViewById<Button>(R.id.conductor_btn)
+//                        conductorButton.setTextColor(Color.WHITE)
+//                        conductorButton.setBackgroundResource(R.drawable.green_btn)
+//                        conductorButton.text = ""
+//                        isConductorExists = true
+//
+//                        for (employee in employeeData) {
+//                            val uid = employee.UID
+//                           // val name = employee.Name
+//                            if (uid == tagUID) {
+//                                conductorText.visibility = View.VISIBLE
+//                                conductorNameDisplay.visibility = View.VISIBLE
+//                                conductorNameDisplay.text = employeeName
+//                                conductorName = employeeName
+//                                //Log.d("EmployeeInfo", "UID: $uid, Name: $name")
+//                                break
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    Toast.makeText(this, "UID does not exist", Toast.LENGTH_SHORT).show()
+//                }
+//
+//                Log.d("Requirements", "$isDispatcherExists")
+//                Log.d("Requirements", "$isDriverExists")
+//                Log.d("Requirements", "$isConductorExists")
+//                Log.d("Requirements", "$isSelectedBound")
+//                Log.d("Requirements", "$isSelectedRoute")
+//                Log.d("Requirements", "$regularTripButtonClicked")
+//                Log.d("Requirements", "$specialTripButtonClicked")
+//
+//                updateDispatchButtonState()
+//
+//            } else {
+//                Toast.makeText(this, "Card cannot be found", Toast.LENGTH_SHORT).show()
+//            }
+//        }
     }
 
     private fun byteArrayToHexString(byteArray: ByteArray): String {

@@ -21,24 +21,11 @@ import com.google.gson.annotations.SerializedName
 import org.json.JSONArray
 import org.json.JSONObject
 
-
-//"fieldData": {
-//    "lastName": "ABABAO",
-//    "firstName": "JOVY",
-//    "middleName": "FOLLERO",
-//    "nameSuffix": "",
-//    "empNo": 8526,
-//    "empStatus": "AWOL",
-//    "empType": "Probationary",
-//    "idName": "JOVY F. ABABAO",
-//    "designation": "Bus Driver",
-//    "idPicture": "https://fms.dltbbus.com.ph/Streaming_SSL/MainDB/4732407BEF18055A103D08B23280E8857E79D7D4F6EF23C5FDC3692C01A1751C.png?RCType=EmbeddedRCFileProcessor",
-//    "idSignature": "https://fms.dltbbus.com.ph/Streaming_SSL/MainDB/E0BEFE11D8F07F07F7A6216E808B97F92F662344B8CC1C76BD65007FC7697BA9.jpg?RCType=EmbeddedRCFileProcessor",
-//    "JTI_RFID": "YES",
-//    "accessPrivileges": "Bus Driver / Conductor",
-//    "JTI_RFID_RequestDate": "12/15/2022"
-//}
+import com.example.dltb.DBHelper;
+import android.content.ContentValues
+import android.content.Context
 data class Employees(
+    val id: String,
     val lastName: String,
     val firstName: String,
     val  middleName: String,
@@ -57,10 +44,11 @@ data class Employees(
 data class EmployeesResponse(
     @SerializedName("employees") val employees: List<Employees> // Use @SerializedName for custom field names
 )
-class LoadingScreen : AppCompatActivity() {
+class LoadingScreen() : AppCompatActivity() {
 
     private val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZnVuY3Rpb24gbm93KCkgeyBbbmF0aXZlIGNvZGVdIH0iLCJpYXQiOjE2OTcxOTA0MTN9.7L2inMYEbC5gNJ8TfmuaFbKLgAV9Jl5P5XtV-PKG2aw";
 
+    //private val context: Context = context
 
     private lateinit var progressBar: ProgressBar
     private val delay_Splash_Screen: Long = 3000 //delay duration for 3 seconds
@@ -73,12 +61,15 @@ class LoadingScreen : AppCompatActivity() {
     }
     private val handler = Handler(Looper.getMainLooper())
 
+    private val dbHelper = DBHelper(this);
+
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.loading_screen)
 
             syncToServer();
+            dbHelper.getAllDirections(this);
 
             progressBar = findViewById(R.id.progress_Bar)
             progressBar.max = 100
@@ -142,7 +133,11 @@ class LoadingScreen : AppCompatActivity() {
 
                         for (dataElement in responseArray) {
                             val dataObject = dataElement.asJsonObject
-                            Log.d("DESTINATION", dataObject.toString());
+                            val id = dataObject.get("_id").toString();
+                            val bound = dataObject.get("bound").toString();
+                            val origin = dataObject.get("origin").toString();
+                            val destination = dataObject.get("destination").toString();
+                            dbHelper.insertNewDirection(this@LoadingScreen, id, bound, origin, destination)
                         }
                     }
                 } else {
@@ -151,7 +146,7 @@ class LoadingScreen : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 // Log any exceptions that occur
-                Log.e("FETCH DATA", "An error occurred: $e")
+                Log.e("FETCH DATA", "An error ocoi[[[[io[io[io[acurred: $e")
             }
         }
 

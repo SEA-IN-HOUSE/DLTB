@@ -9,12 +9,15 @@ import android.util.Log
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, "DLTBDatabase", null, 3) {
 
+
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS Employees  (UID TEXT PRIMARY KEY, Name TEXT, EmployeeType TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS Directions  (ID TEXT PRIMARY KEY, BOUND TEXT, ORIGIN TEXT, DESTINATION TEXT )");
+        db.execSQL("CREATE TABLE IF NOT EXISTS Employees  (ID TEXT PRIMARY KEY, LASTNAME TEXT, FIRSTNAME TEXT, MIDDLENAME TEXT, NAMESUFFIX TEXT, EMPNO INTEGER, EMPSTATUS TEXT, EMPTYPE TEXT, IDNAME TEXT, DESIGNATION TEXT, IDPICTURE TEXT, IDSIGNATURE TEXT, JTI_RFID TEXT, ACCESSPRIVILEGES TEXT, JTI_RFID_REQUESTDATE TEXT )");
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS Employees")
+        db.execSQL("DROP TABLE IF EXISTS Employees");
+        db.execSQL("DROP TABLE IF EXISTS Directions");
         onCreate(db)
     }
 
@@ -23,61 +26,100 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "DLTBDatabase", nul
         private const val DATABASE_VERSION = 3
     }
 
-//    fun insertEmployees(employees: List<Employee>) {
-//        val db = writableDatabase
-//        db.beginTransaction()
-//        try {
-//            for (employee in employees) {
-//                val contentValues = ContentValues()
-//                contentValues.put("UID", employee.UID)
-//                contentValues.put("Name", employee.Name)
-//                contentValues.put("EmployeeType", employee.EmployeeType)
-//                db.insert("Employees", null, contentValues)
-//            }
-//            db.setTransactionSuccessful()
-//        } catch (e: Exception) {
-//            Log.e("DBHelper", "Error inserting drivers: ${e.message}")
-//        } finally {
-//            db.endTransaction()
-//            db.close()
-//        }
-//    }
 
-//    fun getEmployeeData(): List<Employee> {
-//        val employees = mutableListOf<Employee>()
-//        val database = this.readableDatabase
-//
-//        val query = "SELECT * FROM Employees"
-//        val cursor = database.rawQuery(query, null)
-//
-//        try {
-//            cursor.use {
-//                while (it.moveToNext()) {
-//                    val uid = it.getString(it.getColumnIndex("UID"))
-//                    val name = it.getString(it.getColumnIndex("Name"))
-//                    val employeeType = it.getString(it.getColumnIndex("EmployeeType"))
-//                    employees.add(Employee(uid, name, employeeType))
-//                }
-//            }
-//        } catch (e: Exception) {
-//            Log.e("DatabaseError", "Error retrieving employee data: ${e.message}", e)
-//        } finally {
-//            cursor.close()
-//            database.close()
-//        }
-//        return employees
-//    }
+//    val id: String,
+//    val lastName: String,
+//    val firstName: String,
+//    val  middleName: String,
+//    val nameSuffix: String,
+//    val empNo: Number,
+//    val empStatus: String,
+//    val empType: String,
+//    val idName: String,
+//    val designation: String,
+//    val idPicture: String,
+//    val idSignature: String,
+//    val JTI_RFID: String,
+//    val accessPrivileges: String,
+//    val JTI_RFID_RequestDate: String
 
-    // Check if the driverID exists
-    fun employeeExists(UID: String): Boolean {
-        val db = readableDatabase
-        val query = "SELECT UID FROM Employees WHERE UID = ?"
-            val cursor = db.rawQuery(query, arrayOf(UID))
-            try {
-                return cursor.moveToFirst()
-            } finally {
-                cursor.close()
-                db.close()
+    //EMPLOYEES
+    fun insertNewEmployees(context: Context, id: String, lastName: String, firstName: String, middlename: String, nameSuffix: String) {
+        try{
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put("ID", id)
+                put("BOUND", bound)
+                put("ORIGIN", origin)
+                put("DESTINATION", destination)
+            }
+            db.insert("Directions", null, values)
+        }catch(e : Exception){
+            Log.e("DB HELPER", "An error occurred: $e")
+        }
+
+    }
+
+    fun getAllDirections(context: Context){
+        try{
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM Directions", null)
+            if (cursor.moveToFirst()) {
+                do {
+
+                    val id = cursor.getString(cursor.getColumnIndexOrThrow("ID"))
+                    val bound = cursor.getString(cursor.getColumnIndexOrThrow("BOUND"))
+                    val origin = cursor.getString(cursor.getColumnIndexOrThrow("ORIGIN"))
+                    val destination = cursor.getString(cursor.getColumnIndexOrThrow("DESTINATION"))
+                    Log.d("DIRECTIONS ON DB", "ID: $id, BOUND: $bound, ORIGIN: $origin, DESTINATION: $destination")
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        }catch(e: Exception){
+            Log.e("DB HELPER", "An error occurred: $e")
+        }
+    }
+
+
+    //DIRECTIONS
+
+    fun insertNewDirection(context: Context, id: String, bound: String, origin: String, destination: String) {
+        try{
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put("ID", id)
+                put("BOUND", bound)
+                put("ORIGIN", origin)
+                put("DESTINATION", destination)
+            }
+            db.insert("Directions", null, values)
+        }catch(e : Exception){
+            Log.e("DB HELPER", "An error occurred: $e")
+        }
+
+    }
+
+    fun getAllDirections(context: Context){
+        try{
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM Directions", null)
+            if (cursor.moveToFirst()) {
+                do {
+
+                    val id = cursor.getString(cursor.getColumnIndexOrThrow("ID"))
+                    val bound = cursor.getString(cursor.getColumnIndexOrThrow("BOUND"))
+                    val origin = cursor.getString(cursor.getColumnIndexOrThrow("ORIGIN"))
+                    val destination = cursor.getString(cursor.getColumnIndexOrThrow("DESTINATION"))
+                    Log.d("DIRECTIONS ON DB", "ID: $id, BOUND: $bound, ORIGIN: $origin, DESTINATION: $destination")
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        }catch(e: Exception){
+            Log.e("DB HELPER", "An error occurred: $e")
         }
     }
 

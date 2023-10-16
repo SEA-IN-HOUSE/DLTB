@@ -46,7 +46,7 @@ data class EmployeesResponse(
 )
 class LoadingScreen() : AppCompatActivity() {
 
-    private val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZnVuY3Rpb24gbm93KCkgeyBbbmF0aXZlIGNvZGVdIH0iLCJpYXQiOjE2OTcxOTA0MTN9.7L2inMYEbC5gNJ8TfmuaFbKLgAV9Jl5P5XtV-PKG2aw";
+    private val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZnVuY3Rpb24gbm93KCkgeyBbbmF0aXZlIGNvZGVdIH0iLCJpYXQiOjE2OTcwOTcyNjl9.tT7GdpjGqGRRuP83ts2Ok2arhVu8sAyFKWjd8M7do9k";
 
     //private val context: Context = context
 
@@ -63,13 +63,14 @@ class LoadingScreen() : AppCompatActivity() {
 
     private val dbHelper = DBHelper(this);
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.loading_screen)
 
-            syncToServer();
-            dbHelper.getAllDirections(this);
+//            syncToServer();
 
             progressBar = findViewById(R.id.progress_Bar)
             progressBar.max = 100
@@ -104,7 +105,7 @@ class LoadingScreen() : AppCompatActivity() {
     }
 
     // SYNC TO SERVER WHEN ONLINE
-    public fun syncToServer(){
+    private fun syncToServer(){
         getAllDirectionsFromServer();
         getAllEmployeesFromServer();
     }
@@ -146,20 +147,20 @@ class LoadingScreen() : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 // Log any exceptions that occur
-                Log.e("FETCH DATA", "An error ocoi[[[[io[io[io[acurred: $e")
+                Log.e("FETCH DATA", "An error occurred: $e")
             }
         }
 
     }
 
     private fun getAllEmployeesFromServer() {
-
+        Log.d("TEST EMPLOYEE", "PUTANGINA")
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val client = OkHttpClient.Builder().build()
                 val request = Request.Builder()
                     .url("https://dltb-be.onrender.com/api/v1/filipay/employee")
-                    .header("Authorization", "Bearer  ${token}") // Replace with your actual authorization token
+                    .header("Authorization", "Bearer ${token}") // Replace with your actual authorization token
                     .build()
 
                 val response = client.newCall(request).execute()
@@ -182,21 +183,38 @@ class LoadingScreen() : AppCompatActivity() {
                                 Log.d("FETCH DATA3", innerObjectElement.toString())
                                 val innerObject = innerObjectElement.asJsonObject
                                 val fieldData = innerObject.getAsJsonArray("fieldData")
+                                Log.d("FETCH DATA", fieldData.toString())
                                 for (dataElement in fieldData) {
                                     val dataObject = dataElement.asJsonObject
-                                    val lastName = dataObject.get("lastName").asString
-                                    Log.d("LastName", lastName);
+                                    val lastName = dataObject.get("lastName").toString();
+                                    val firstName = dataObject.get("firstName").toString();
+                                    val middleName = dataObject.get("middleName").toString();
+                                    val nameSuffix = dataObject.get("nameSuffix").toString();
+                                    val empNo = Integer.parseInt(dataObject.get("empNo").toString());
+                                    val empStatus =  dataObject.get("empStatus").toString();
+                                    val empType = dataObject.get("empType").toString();
+                                    val idName = dataObject.get("idName").toString();
+                                    val designation = dataObject.get("designation").toString();
+                                    val idPicture = dataObject.get("idPicture").toString();
+                                    val idSignature = dataObject.get("idSignature").toString();
+                                    val jtiRfid = dataObject.get("JTI_RFID").toString();
+                                    val accessPrivileges = dataObject.get("accessPrivileges").toString();
+                                    val jtiRfidRequestDate = dataObject.get("JTI_RFID_RequestDate").toString();
+                                    val id = dataObject.get("_id").toString();
+                                    Log.d("TEST EMPLOYEE", "ID : $id")
+                                    dbHelper.insertNewEmployees(this@LoadingScreen, id, lastName, firstName, middleName, nameSuffix, empNo, empStatus,
+                                        empType, idName,designation, idPicture, idSignature, jtiRfid,  accessPrivileges, jtiRfidRequestDate);
                                 }
                             }
                         }
                     }
                 } else {
                     // Log an error if the request was not successful
-                    Log.d("FETCH DATA", "Request failed with code: ${response}")
+                    Log.d("FETCH DATA EMPLOYEES", "Request failed with code: ${response}")
                 }
             } catch (e: Exception) {
                 // Log any exceptions that occur
-                Log.e("FETCH DATA", "An error occurred: $e")
+                Log.e("FETCH DATA EMPLOYEES", "An error occurred: $e")
             }
         }
     }

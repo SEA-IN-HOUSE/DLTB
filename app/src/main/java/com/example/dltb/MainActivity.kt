@@ -59,11 +59,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var employeeCardUID: String
     private var tagUID: String? = null
 
+    private val myDbHelper = DBHelper(this);
+
+    ////////// SYNC DATA
+//    private val dltbEmployees = myDbHelper.getAllEmployees(this@MainActivity);
+//
+//    private val directions = myDbHelper.getAllDirections(this@MainActivity);
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_page)
 
         dbHelper = DBHelper(applicationContext)
+
+        val dltbEmployees = myDbHelper.getAllEmployees(this);
+
+        val directions = myDbHelper.getAllDirections(this);
 
         if (!dataInitialized) {
             val dbHelper = DBHelper(applicationContext)
@@ -83,6 +94,16 @@ class MainActivity : AppCompatActivity() {
 
         customButtons = CustomButtons()
 
+        Log.d("DLTB EMPLOYEES", "TEST HERE")
+        for (employee in dltbEmployees) {
+            Log.d("DLTB EMPLOYEES", employee.toString())
+        }
+
+        for(direction in directions){
+//            Log.d("DLTB DIRECTIONS" , direction.toString());
+
+        }
+
 
         passengerCount = 0
         passengerCountText.text = "${String.format("%02d", passengerCount)}"
@@ -96,19 +117,22 @@ class MainActivity : AppCompatActivity() {
         )
         setOptionsForRouteButton("North Bound")
 
-        southBoundOptions = arrayOf(
-            "PITX - TAYABAS",
-            "PITX - LUCBAN",
-            "PITX - LUCENA",
-            "LRT - DOLORES",
-            "LRT - DALAHICAN",
-            "LRT - TAYABAS",
-            "LRT - LUCBAN",
-            "LRT - LUCENA",
-            "LRT - SM LUCENA",
-            "CUBAO - DOLORES",
-            "CUBAO - DALAHICAN"
-        )
+        southBoundOptions = arrayOf()
+
+
+
+        for(direction in directions){
+            Log.d("DLTB DIRECTIONS" , direction.toString());
+            Log.d("DIRECTION STRING" , direction.BOUND);
+            if(direction.BOUND == "SOUTH"){
+                Log.d("DIRECTION STRING","TRUE");
+                Log.d("DIRECTION STRING", direction.ORIGIN+" - "+direction.DESTINATION);
+                southBoundOptions = arrayOf(*southBoundOptions, direction.ORIGIN+" - "+direction.DESTINATION);
+            }else{
+                Log.d("DIRECTION STRING","FALSE");
+            }
+        }
+
 
         selectVehicleOptionsbutton.setOnClickListener {
             selectVehicleNo()

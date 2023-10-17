@@ -14,18 +14,22 @@ val NAMESUFFIX : String, val EMPNO : Int, val EMPSTATUS : String, val EMPTYPE : 
     val ACCESSPRIVILEGES : String, val JTI_RFID_REQUESDATE : String);
 
 
+data class EmployeeCard (val ID : String, val EMPLOYEENO : String, val CARDID : String);
 data class Directions (val ID : String, val BOUND : String, val ORIGIN : String, val DESTINATION : String);
 class DBHelper(context: Context) : SQLiteOpenHelper(context, "DLTBDatabase", null, 3) {
 
 
     override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS EmployeeCards  (ID TEXT PRIMARY KEY, EMPLOYEENO TEXT, CARDID TEXT )");
         db.execSQL("CREATE TABLE IF NOT EXISTS Directions  (ID TEXT PRIMARY KEY, BOUND TEXT, ORIGIN TEXT, DESTINATION TEXT )");
         db.execSQL("CREATE TABLE IF NOT EXISTS Employees  (ID TEXT PRIMARY KEY, LASTNAME TEXT, FIRSTNAME TEXT, MIDDLENAME TEXT, NAMESUFFIX TEXT, EMPNO INTEGER, EMPSTATUS TEXT, EMPTYPE TEXT, IDNAME TEXT, DESIGNATION TEXT, IDPICTURE TEXT, IDSIGNATURE TEXT, JTI_RFID TEXT, ACCESSPRIVILEGES TEXT, JTI_RFID_REQUESTDATE TEXT )");
+
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS Employees");
         db.execSQL("DROP TABLE IF EXISTS Directions");
+        db.execSQL("DROP TABLE IF EXISTS EmployeeCards");
         onCreate(db)
     }
 
@@ -33,6 +37,57 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "DLTBDatabase", nul
         private const val DATABASE_NAME = "DLTBDatabase"
         private const val DATABASE_VERSION = 3
     }
+
+    //EMPLOYEE CARD
+    fun insertEmployeeCard(context: Context, id : String, employeeNo : String, cardId : String){
+
+        try{
+
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put("ID", id)
+                put("EMPLOYEENO", employeeNo)
+                put("cardId", cardId)
+            }
+            db.insert("EmployeeCards", null, values)
+
+        }catch(e : Exception){
+            Log.e("DB HELPER", "An error occurred: $e")
+        }
+
+    }
+
+    fun getAllEmployeeCard(context: Context) : Array<EmployeeCard>{
+        try{
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM EmployeeCards", null)
+
+            val employeeCards = mutableListOf<EmployeeCard>()
+            Log.d("TEST COMMAND" ,"TITE")
+            if (cursor.moveToFirst()) {
+                do {
+
+                    val id = cursor.getString(cursor.getColumnIndexOrThrow("ID"))
+                    val employeeNo = cursor.getString(cursor.getColumnIndexOrThrow("EMPLOYEENO"))
+                    val cardId = cursor.getString(cursor.getColumnIndexOrThrow("CARDID"))
+                    Log.d("TEST COMMAND" , employeeNo.toString())
+                    Log.d("GET ALL DATA SQL ECARD", "ID: $id, EMPLOYEENO: $employeeNo, CARDID: $cardId")
+
+                    employeeCards.add(EmployeeCard(id, employeeNo, cardId))
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+
+            return employeeCards.toTypedArray();
+        }catch(e: Exception){
+            Log.e("DB HELPER", "An error occurred: $e")
+            return  emptyArray();
+        }
+    }
+
+
 
     //EMPLOYEES
     fun insertNewEmployees(context: Context, id: String, lastName: String,
@@ -110,6 +165,51 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "DLTBDatabase", nul
             return emptyArray()
         }
     }
+
+    fun searchEmployeeByEmployeeCard(context: Context, cardId: String): Array<DLTBEmployee> {
+        try {
+            val dbHelper = DBHelper(context)
+            val db = dbHelper.readableDatabase
+//            val query = """
+//            SELECT
+//            *
+//            FROM
+//            EMPLOYEES
+//            INNER JOIN
+//            EMPLOYEECARDS
+//            ON
+//            EMPLOYEES.EMPNO = EMPLOYEECARDS.EMPLOYEENO
+//            WHERE
+//            EMPLOYEECARDS.CARDID = ?
+//            """.trimIndent()
+            Log.d("THE EMPLOYEE DATA", cardId)
+            val uid = "4BF649D9";
+            val query = "SELECT * FROM EmployeeCards"
+
+            val selectionArgs = arrayOf(uid)
+
+            val cursor = db.rawQuery(query, null)
+
+            val employees = mutableListOf<DLTBEmployee>()
+
+            if (cursor.moveToFirst()) {
+
+              do {
+                  val id = cursor.getString(cursor.getColumnIndexOrThrow("ID"))
+                  Log.d("THE EMPLOYEE DATA", id);
+                } while (cursor.moveToNext())
+            }else{
+                Log.d("THE EMPLOYEE DATA", "NO DATA FOUND")
+            }
+            cursor.close()
+
+            return employees.toTypedArray()
+        } catch (e: Exception) {
+            Log.e("THE EMPLOYEE DATA", "An error occurred: $e")
+            return emptyArray()
+        }
+    }
+
 
 
     //DIRECTIONS

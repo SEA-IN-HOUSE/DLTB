@@ -48,6 +48,7 @@ class LoadingScreen() : AppCompatActivity() {
 
     private val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZnVuY3Rpb24gbm93KCkgeyBbbmF0aXZlIGNvZGVdIH0iLCJpYXQiOjE2OTcwOTcyNjl9.tT7GdpjGqGRRuP83ts2Ok2arhVu8sAyFKWjd8M7do9k";
 
+    private val baseUrl = "https://dltb-be-crbw.onrender.com"
     //private val context: Context = context
 
     private lateinit var progressBar: ProgressBar
@@ -70,7 +71,7 @@ class LoadingScreen() : AppCompatActivity() {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.loading_screen)
 
-//            syncToServer();
+             syncToServer();
 
             progressBar = findViewById(R.id.progress_Bar)
             progressBar.max = 100
@@ -108,6 +109,7 @@ class LoadingScreen() : AppCompatActivity() {
     private fun syncToServer(){
         getAllDirectionsFromServer();
         getAllEmployeesFromServer();
+        getAllEmployeeCardFromServer();
     }
     private fun getAllDirectionsFromServer(){
 
@@ -115,7 +117,7 @@ class LoadingScreen() : AppCompatActivity() {
             try {
                 val client = OkHttpClient.Builder().build()
                 val request = Request.Builder()
-                    .url("https://dltb-be.onrender.com/api/v1/filipay/directions")
+                    .url("${baseUrl}/api/v1/filipay/directions")
                     .header("Authorization", "Bearer ${token}") // Replace with your actual authorization token
                     .build()
 
@@ -159,7 +161,7 @@ class LoadingScreen() : AppCompatActivity() {
             try {
                 val client = OkHttpClient.Builder().build()
                 val request = Request.Builder()
-                    .url("https://dltb-be.onrender.com/api/v1/filipay/employee")
+                    .url("${baseUrl}/api/v1/filipay/employee")
                     .header("Authorization", "Bearer ${token}") // Replace with your actual authorization token
                     .build()
 
@@ -220,7 +222,48 @@ class LoadingScreen() : AppCompatActivity() {
     }
 
 
+    private fun getAllEmployeeCardFromServer(){
 
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val client = OkHttpClient.Builder().build()
+                val request = Request.Builder()
+                    .url("${baseUrl}/api/v1/filipay/employeecard")
+                    .header("Authorization", "Bearer ${token}") // Replace with your actual authorization token
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+
+                    responseBody?.let {
+                        // Parse the JSON response using Gson
+                        val gson = Gson()
+                        val jsonObject = gson.fromJson(responseBody, JsonObject::class.java)
+                        val responseArray = jsonObject.getAsJsonArray("response")
+
+                        Log.d("EMPLOYEE CARD", responseArray.toString());
+
+                        for (dataElement in responseArray) {
+                            val dataObject = dataElement.asJsonObject
+                            val id = dataObject.get("_id").toString();
+                            val employeeId = dataObject.get("employeeId").toString();
+                            val cardId = dataObject.get("cardId").toString();
+                            dbHelper.insertEmployeeCard(this@LoadingScreen, id, employeeId, cardId)
+                        }
+                    }
+                } else {
+                    // Log an error if the request was not successful
+                    Log.d("FETCH DATA", "Request failed with code: ${response}")
+                }
+            } catch (e: Exception) {
+                // Log any exceptions that occur
+                Log.e("FETCH DATA", "An error occurred: $e")
+            }
+        }
+
+    }
 
 
 

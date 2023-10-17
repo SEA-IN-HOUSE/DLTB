@@ -34,6 +34,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var passengerCountText: TextView
     private lateinit var northBoundOptions: Array<String>
     private lateinit var southBoundOptions: Array<String>
+    private lateinit var westBoundOptions: Array <String>
+    private lateinit var eastBoundOptions: Array <String>
     private lateinit var selectVehicleOptions: Array<String>
     private var selectedBound: String = "Select Bound"
     private var selectedRoute: String = "Select Route"
@@ -61,10 +63,11 @@ class MainActivity : AppCompatActivity() {
 
     private val myDbHelper = DBHelper(this);
 
-    ////////// SYNC DATA
-//    private val dltbEmployees = myDbHelper.getAllEmployees(this@MainActivity);
-//
-//    private val directions = myDbHelper.getAllDirections(this@MainActivity);
+    private var dltbEmployees: Array<DLTBEmployee> = emptyArray();
+
+    private var directions : Array<Directions> = emptyArray();
+
+    private var employeeCards : Array<EmployeeCard> = emptyArray();
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,9 +75,12 @@ class MainActivity : AppCompatActivity() {
 
         dbHelper = DBHelper(applicationContext)
 
-        val dltbEmployees = myDbHelper.getAllEmployees(this);
+        dltbEmployees = myDbHelper.getAllEmployees(this);
 
-        val directions = myDbHelper.getAllDirections(this);
+        directions = myDbHelper.getAllDirections(this);
+
+        employeeCards = myDbHelper.getAllEmployeeCard(this);
+
 
         if (!dataInitialized) {
             val dbHelper = DBHelper(applicationContext)
@@ -99,22 +105,13 @@ class MainActivity : AppCompatActivity() {
             Log.d("DLTB EMPLOYEES", employee.toString())
         }
 
-        for(direction in directions){
-//            Log.d("DLTB DIRECTIONS" , direction.toString());
-
-        }
 
 
         passengerCount = 0
         passengerCountText.text = "${String.format("%02d", passengerCount)}"
 
-        northBoundOptions = arrayOf(
-            "Sample 1 - Sample 2",
-            "Sample 3 - Sample 4",
-            "Sample 5 - Sample 6",
-            "Sample 7 - Sample 7",
-            "Sample 8 - Sample 9"
-        )
+        northBoundOptions = arrayOf()
+
         setOptionsForRouteButton("North Bound")
 
         southBoundOptions = arrayOf()
@@ -122,14 +119,25 @@ class MainActivity : AppCompatActivity() {
 
 
         for(direction in directions){
-            Log.d("DLTB DIRECTIONS" , direction.toString());
-            Log.d("DIRECTION STRING" , direction.BOUND);
-            if(direction.BOUND == "SOUTH"){
-                Log.d("DIRECTION STRING","TRUE");
-                Log.d("DIRECTION STRING", direction.ORIGIN+" - "+direction.DESTINATION);
-                southBoundOptions = arrayOf(*southBoundOptions, direction.ORIGIN+" - "+direction.DESTINATION);
-            }else{
-                Log.d("DIRECTION STRING","FALSE");
+
+            if(direction.BOUND.removeSurrounding("\"").equals("SOUTH", ignoreCase = true)){
+
+                southBoundOptions = arrayOf(*southBoundOptions, direction.ORIGIN.removeSurrounding("\"")+" - "+direction.DESTINATION.removeSurrounding("\""));
+            }
+
+            if(direction.BOUND.removeSurrounding("\"").equals("NORTH", ignoreCase = true)){
+
+                northBoundOptions = arrayOf(*northBoundOptions, direction.ORIGIN.removeSurrounding("\"")+" - "+direction.DESTINATION.removeSurrounding("\""));
+            }
+
+            if(direction.BOUND.removeSurrounding("\"").equals("WEST", ignoreCase = true)){
+
+                westBoundOptions = arrayOf(*westBoundOptions, direction.ORIGIN.removeSurrounding("\"")+" - "+direction.DESTINATION.removeSurrounding("\""));
+            }
+
+            if(direction.BOUND.removeSurrounding("\"").equals("EAST", ignoreCase = true)){
+
+                eastBoundOptions = arrayOf(*eastBoundOptions, direction.ORIGIN.removeSurrounding("\"")+" - "+direction.DESTINATION.removeSurrounding("\""));
             }
         }
 
@@ -267,10 +275,125 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-//        if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED) {
-//
-//            val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
-//            val uidBytes = tag?.id
+
+        val dispatcherText = findViewById<TextView>(R.id.dispatcher_text)
+            val driverText = findViewById<TextView>(R.id.driver_text)
+                val conductorText = findViewById<TextView>(R.id.conductor_text)
+
+                // Display the names
+                val dispatcherNameDisplay = findViewById<TextView>(R.id.dispatcher_name)
+                val driverNameDisplay = findViewById<TextView>(R.id.driver_name)
+                val conductorNameDisplay = findViewById<TextView>(R.id.conductor_name)
+
+        dbHelper = DBHelper(applicationContext)
+        if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED) {
+
+            val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
+            val uidBytes = tag?.id
+
+            try{
+                var isCardIdRegistered : Boolean = false;
+                if(uidBytes != null){
+                    val tagUID = byteArrayToHexString(uidBytes)
+               Toast.makeText(this, "UID: $tagUID", Toast.LENGTH_SHORT).show()
+                    for(card in employeeCards){
+                        Log.d("EMPLOYEE CARD", card.CARDID.toString())
+                        if(card.CARDID.removeSurrounding("\"").equals(tagUID, ignoreCase = true)){
+                            isCardIdRegistered = true;
+                            for(employee in dltbEmployees) {
+
+                                if (employee.EMPNO.toString().removeSurrounding("\"").equals(
+                                        card.EMPLOYEENO.removeSurrounding("\""),
+                                        ignoreCase = true
+                                    )
+                                ) {
+
+                                    Log.d("THE EMPLOYEE DATA", employee.DESIGNATION)
+                                    if (employee.DESIGNATION.removeSurrounding("\"")
+                                            .equals("Bus Driver", ignoreCase = true)
+                                    ) {
+
+                                        val driverFullName =
+                                            employee.FIRSTNAME.removeSurrounding("\"") + " " + employee.MIDDLENAME.removeSurrounding(
+                                                "\""
+                                            ) + " " + employee.LASTNAME.removeSurrounding("\"")
+                                        val driverButton = findViewById<Button>(R.id.driver_btn)
+                                        driverButton.setTextColor(Color.WHITE)
+                                        driverButton.setBackgroundResource(R.drawable.green_btn)
+                                        driverButton.text = ""
+                                        isDriverExists = true
+                                        driverText.visibility = View.VISIBLE
+                                        driverNameDisplay.visibility = View.VISIBLE
+                                        driverNameDisplay.text = driverFullName
+                                        driverName = driverFullName
+
+
+                                    }
+
+
+                                    if (employee.DESIGNATION.removeSurrounding("\"")
+                                            .equals("Dispatcher", ignoreCase = true)
+                                    ) {
+
+                                        val employeeFullName : String = employee.FIRSTNAME.removeSurrounding("\"") + " " + employee.MIDDLENAME.removeSurrounding(
+                                                "\""
+                                            ) + " " + employee.LASTNAME.removeSurrounding("\"")
+                                        Log.d("EMPLOYEE CARD", employeeFullName);
+                                        val dispatcherButton = findViewById<Button>(R.id.dispatcher_btn)
+                                        dispatcherButton.setTextColor(Color.WHITE)
+                                        dispatcherButton.setBackgroundResource(R.drawable.green_btn)
+                                        dispatcherButton.text = ""
+                                        isDispatcherExists = true
+
+                                        dispatcherText.visibility = View.VISIBLE
+                                        dispatcherNameDisplay.visibility = View.VISIBLE
+                                        dispatcherNameDisplay.text = employeeFullName
+
+
+                                    }
+
+
+                                    if (employee.DESIGNATION.removeSurrounding("\"")
+                                            .equals("Bus Conductor", ignoreCase = true)
+                                    ) {
+
+                                        val employeeFullName =
+                                            employee.FIRSTNAME.removeSurrounding("\"") + " " + employee.MIDDLENAME.removeSurrounding(
+                                                "\""
+                                            ) + " " + employee.LASTNAME.removeSurrounding("\"")
+
+                                        val conductorButton = findViewById<Button>(R.id.conductor_btn)
+                                        conductorButton.setTextColor(Color.WHITE)
+                                        conductorButton.setBackgroundResource(R.drawable.green_btn)
+                                        conductorButton.text = ""
+                                        isConductorExists = true
+
+                                        conductorText.visibility = View.VISIBLE
+                                        conductorNameDisplay.visibility = View.VISIBLE
+                                        conductorNameDisplay.text = employeeFullName
+                                        conductorName = employeeFullName
+
+
+                                    }
+
+                                }
+
+
+
+                            }
+
+                        }
+                    }
+
+                    if(!isCardIdRegistered){
+                        Toast.makeText(this, "Card is not registered yet", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }catch(e : Exception){
+                Toast.makeText(this, "Error: $e", Toast.LENGTH_SHORT).show()
+            }
+
 //
 //            if (uidBytes != null) {
 //                val tagUID = byteArrayToHexString(uidBytes)
@@ -385,7 +508,7 @@ class MainActivity : AppCompatActivity() {
 //            } else {
 //                Toast.makeText(this, "Card cannot be found", Toast.LENGTH_SHORT).show()
 //            }
-//        }
+        }
     }
 
     private fun byteArrayToHexString(byteArray: ByteArray): String {
